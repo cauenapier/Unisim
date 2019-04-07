@@ -73,6 +73,22 @@ class VerticalNewton(Gravity):
         self._magnitude = STD_GRAVITATIONAL_PARAMETER / r_squared
         self._vector = self.magnitude * self._versor
 
+class SimpleNewton(Gravity):
+    """SImple gravity model with magnitude varying according to Newton's
+    universal law of gravitation.
+    """
+
+    def __init__(self):
+        self._versor = np.zeros([3])
+        self._vector = np.zeros([3])
+
+    def update(self, _pos):
+        r = -np.linalg.norm(_pos)
+        self._versor = _pos/r
+
+        r_squared = r**2
+        self._magnitude = STD_GRAVITATIONAL_PARAMETER / r_squared
+        self._vector = self.magnitude * self._versor
 
 class LatitudeModel(Gravity):
     # TODO: https://en.wikipedia.org/wiki/Gravity_of_Earth#Latitude_model

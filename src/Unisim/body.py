@@ -1,8 +1,11 @@
 import numpy as np
 from scipy.integrate import solve_ivp
-from Unisim.environment.gravity import VerticalNewton
+from abc import abstractmethod
 
-class Body_FlatEarth(object):
+from Unisim.environment.gravity import *
+
+
+class Body(object):
     """A rigid body
 
     TODO: create a type for static objects
@@ -59,25 +62,11 @@ class Body_FlatEarth(object):
     def set_environment(self, environment):
         self._environment = environment
 
+    @abstractmethod
     def fun(self, t, x):
         """
         """
-        mass = self._mass
-        height = self._state_vector[2]
-
-        
-        self._environment.gravity.update(height)
-        Fg = self._environment.gravity._vector*mass
-
-
-        forces = Fg
-
-        self.total_forces = forces
-
-        rv = _system_equations(t,x,mass,forces)
-
-        return rv
-
+        raise NotImplementedError
 
 
     def fun_wrapped(self, t, x):
@@ -121,19 +110,76 @@ class Body_FlatEarth(object):
 
         return self._state_vector
 
-
-def _system_equations(time, state_vector, mass, forces):
+class Body_FlatEarth(Body):
     """
     """
-    Fx, Fy, Fz = forces
-    u, v, w = state_vector[3:6]
+    def fun(self, t, x):
+        """
+        """
+        mass = self._mass
+        height = self._state_vector[2]
 
-    dx_dt = u
-    dy_dt = v
-    dz_dt = w
 
-    du_dt = Fx/mass
-    dv_dt = Fy/mass
-    dw_dt = Fz/mass
+        self._environment.gravity.update(height)
+        Fg = self._environment.gravity._vector*mass
 
-    return np.array([dx_dt, dy_dt, dz_dt, du_dt, dv_dt, dw_dt])
+
+        forces = Fg
+
+        self.total_forces = forces
+
+        rv = self._system_equations_3DOF(t,x,mass,forces)
+
+        return rv
+
+    def _system_equations_3DOF(self, time, state_vector, mass, forces):
+        """
+        """
+        Fx, Fy, Fz = forces
+        u, v, w = state_vector[3:6]
+
+        dx_dt = u
+        dy_dt = v
+        dz_dt = w
+
+        du_dt = Fx/mass
+        dv_dt = Fy/mass
+        dw_dt = Fz/mass
+
+        return np.array([dx_dt, dy_dt, dz_dt, du_dt, dv_dt, dw_dt])
+
+class Body_RoundEarth(Body):
+    """
+    """
+    def fun(self, t, x):
+        """
+        """
+        mass = self._mass
+
+        pos = self._state_vector[0:3]
+        self._environment.gravity.update(pos)
+        Fg = self._environment.gravity._vector*mass
+
+        forces = Fg
+
+        self.total_forces = forces
+
+        rv = self._system_equations_3DOF(t,x,mass,forces)
+
+        return rv
+
+    def _system_equations_3DOF(self, time, state_vector, mass, forces):
+        """
+        """
+        Fx, Fy, Fz = forces
+        u, v, w = state_vector[3:6]
+
+        dx_dt = u
+        dy_dt = v
+        dz_dt = w
+
+        du_dt = Fx/mass
+        dv_dt = Fy/mass
+        dw_dt = Fz/mass
+
+        return np.array([dx_dt, dy_dt, dz_dt, du_dt, dv_dt, dw_dt])
