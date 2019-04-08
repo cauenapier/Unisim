@@ -218,6 +218,9 @@ class Body_FlatEarth(Body):
 class Body_RoundEarth(Body):
     """
     """
+    _cD = 0.5
+
+
     def fun(self, t, x):
         """
         """
@@ -228,7 +231,7 @@ class Body_RoundEarth(Body):
 
         self._environment.gravity.update(pos)
         Fg = self._environment.gravity._vector*mass
-
+        #Fd = self.drag(vel, self._cD)
         forces = Fg
 
         self.total_forces = forces
@@ -236,6 +239,23 @@ class Body_RoundEarth(Body):
         rv = self._system_equations_3DOF(t,x,mass,forces)
 
         return rv
+
+    def drag(self, vel, cD):
+        height
+
+        self._environment.atmosphere.update(height)
+        rho = self._environment.atmosphere._rho
+        v = np.linalg.norm(vel)
+
+        if v == 0:
+            Fd = 0
+        else:
+            versor = vel/v
+            Fd = -(0.5*rho*v**2)*cD*versor
+            print
+
+
+        return Fd
 
     def _system_equations_3DOF(self, time, state_vector, mass, forces):
         """
