@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from Unisim.body import Body_FlatEarth
+from Unisim.bodies.body_3dof import *
 from Unisim.environment import *
 
 from Unisim.environment.atmosphere import ISA1976
