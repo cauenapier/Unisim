@@ -1,6 +1,8 @@
+import operator
 import numpy as np
 from scipy.integrate import solve_ivp
 from abc import abstractmethod
+import pandas as pd
 
 from Unisim.environment.gravity import *
 
@@ -11,13 +13,14 @@ class Body(object):
     TODO: create a type for static objects
     """
 
-#    _default_save_vars = {
-#    'u': 'self._state_vector[3]',
-#    'v': 'self._state_vector[4]',
-#    'w': 'self._state_vector[5]',
-#    }
+    _default_save_vars = {
+    'Time': '_time',
+    'State Vector': '_state_vector',
+    'State Vector Dot': '_state_vector_dot',
+    'Total Forces' : 'total_forces'
+    }
 
-    def __init__(self, t0, x0, method='RK45', options=None):
+    def __init__(self, t0, x0, method='RK45', options=None, save_vars=None):
         """
         """
         self._time = t0
@@ -37,11 +40,11 @@ class Body(object):
         self._method = method
         self._options = options
 
-        self._results = np.empty((0,6))
+        if not save_vars:
+            self._save_vars = self._default_save_vars
+        # Initialize results structure
+        self.results = {name: [] for name in self._save_vars}
 
-    @property
-    def results(self):
-        return self._results
 
     @property
     def state_vector(self):
@@ -106,9 +109,18 @@ class Body(object):
         self._time = sol.t[-1]
         self._state_vector = sol.y[:, -1]
 
-        self._results = np.append(self._results, [x0], axis=0)
+        self._save_time_step()
 
         return self._state_vector
+
+    def _save_time_step(self):
+        """ Saves the selected variables for the current body
+        """
+        for var_name, value_pointer in self._save_vars.items():
+            self.results[var_name].append(
+                operator.attrgetter(value_pointer)(self)
+            )
+
 
 class Body_FlatEarth(Body):
     """
@@ -157,6 +169,8 @@ class Body_RoundEarth(Body):
         mass = self._mass
 
         pos = self._state_vector[0:3]
+        vel = self._state_vector[3:6]
+
         self._environment.gravity.update(pos)
         Fg = self._environment.gravity._vector*mass
 
