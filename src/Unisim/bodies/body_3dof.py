@@ -4,8 +4,6 @@ from scipy.integrate import solve_ivp
 from abc import abstractmethod
 import pandas as pd
 
-from Unisim.environment.gravity import *
-
 
 class Body(object):
     """A rigid body
@@ -15,21 +13,29 @@ class Body(object):
 
     _default_save_vars = {
     'Time': '_time',
-    'State Vector': '_state_vector',
-    'State Vector Dot': '_state_vector_dot',
-    'Total Forces' : 'total_forces'
+    'Pos x': 'pos_x',
+    'Pos y': 'pos_y',
+    'Pos z' : 'pos_z',
+    'Vel x': 'vel_x',
+    'Vel y': 'vel_y',
+    'Vel z' : 'vel_z',
+    'Acc x': 'acc_x',
+    'Acc y': 'acc_y',
+    'Acc z' : 'acc_z',
+    'Mass' : '_mass',
     }
 
-    def __init__(self, t0, x0, method='RK45', options=None, save_vars=None):
+    def __init__(self, t0, x0, method='RK45', name=None, options=None, save_vars=None):
         """
         """
+        self._name = name
         self._time = t0
         self._state_vector = x0
         self._state_vector_dot = np.zeros_like(x0)
 
-        # Mass % Inertia
-        self._mass = 10 # kg
-        # Forces & Moments
+        # Mass
+        self._mass = None # kg
+        # Forces
         self.total_forces = np.zeros(3)
 
         # Environment
@@ -46,13 +52,51 @@ class Body(object):
         self.results = {name: [] for name in self._save_vars}
 
 
-    @property
-    def state_vector(self):
-        return self._state_vector
+        # Other variables
+        self._isSleeping = 0
 
     @property
-    def state_vector_dot(self):
-        return self._state_vector_dot
+    def pos_x(self):
+        return self._state_vector[0]
+    @property
+    def pos_y(self):
+        return self._state_vector[1]
+    @property
+    def pos_z(self):
+        return self._state_vector[2]
+    @property
+    def vel_x(self):
+        return self._state_vector[3]
+    @property
+    def vel_y(self):
+        return self._state_vector[4]
+    @property
+    def vel_z(self):
+        return self._state_vector[5]
+    @property
+    def acc_x(self):
+        return self._state_vector_dot[3]
+    @property
+    def acc_y(self):
+        return self._state_vector_dot[4]
+    @property
+    def acc_z(self):
+        return self._state_vector_dot[5]
+
+    def _set_mass(self, mass):
+        if mass <= 0:
+            raise Exception("Object Mass is equal or lower than zero")
+        else:
+            self._mass = mass
+    def _get_mass(self):
+        return self._mass
+    mass = property(_get_mass, _set_mass, doc="""Mass of the body.""")
+
+    def _set_name(self, name):
+        self._name = name
+    def _get_name(self):
+        return self._name
+    name = property(_get_name, _set_name, doc="""Name of the body.""")
 
     @property
     def time(self):
@@ -65,12 +109,22 @@ class Body(object):
     def set_environment(self, environment):
         self._environment = environment
 
+
+    def sleep(self):
+        """ Forces a body to sleep and stop propagation.
+            Time will still pass but object will not be propagated
+        """
+        self._isSleeping = 1
+    def awake(self):
+        """ Awaken the body, returning its propagation
+        """
+        self._isSleeping = 0
+
     @abstractmethod
     def fun(self, t, x):
         """
         """
         raise NotImplementedError
-
 
     def fun_wrapped(self, t, x):
         # First way that comes to my mind in order to store the derivatives
@@ -92,25 +146,27 @@ class Body(object):
         y : ndarray, shape (n)
             Solution values at t_end.
         """
-
-        x0 = self.state_vector
         t_ini = self.time
-
         t_span = (t_ini, t_ini + dt)
-        method = self._method
 
-        # TODO: prepare to use jacobian in case it is defined
-        sol = solve_ivp(self.fun_wrapped, t_span, x0, method=method,
-                        **self._options)
+        if self._isSleeping:
+            print(self._name, "is sleeping")
+            self._time = t_ini+dt
+        else:
+            x0 = self._state_vector
 
-        if sol.status == -1:
-            raise RuntimeError(f"Integration did not converge at t={t_ini}")
+            method = self._method
+            # TODO: prepare to use jacobian in case it is defined
+            sol = solve_ivp(self.fun_wrapped, t_span, x0, method=method,
+                            **self._options)
 
-        self._time = sol.t[-1]
-        self._state_vector = sol.y[:, -1]
+            if sol.status == -1:
+                raise RuntimeError(f"Integration did not converge at t={t_ini}")
+
+            self._time = sol.t[-1]
+            self._state_vector = sol.y[:, -1]
 
         self._save_time_step()
-
         return self._state_vector
 
     def _save_time_step(self):
@@ -120,7 +176,6 @@ class Body(object):
             self.results[var_name].append(
                 operator.attrgetter(value_pointer)(self)
             )
-
 
 class Body_FlatEarth(Body):
     """
