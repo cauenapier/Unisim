@@ -1,13 +1,13 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from Unisim.body import *
+from Unisim.bodies.body_3dof import *
 from Unisim.environment import *
 
 
 from Unisim.environment.atmosphere import ISA1976
 from Unisim.environment.wind import NoWind
-from Unisim.environment.gravity import VerticalNewton
+from Unisim.environment.gravity import SimpleNewton
 from Unisim.environment.environment import Environment
 
 
@@ -21,6 +21,7 @@ x0[0] = 6371000 + altitude
 x0[4] = 7800
 
 Sat = Body_RoundEarth(t0,x0)
+Sat._set_mass(500)
 
 atmo = ISA1976()
 gravity = SimpleNewton()
@@ -33,6 +34,7 @@ Sat.set_environment(Env)
 for ii in range(0,10000):
     Sat.step(1)
     #print(Sat.altitude())
+results = pd.DataFrame(Sat.results)
 
-plt.plot(Sat.results[:,0], Sat.results[:,1])
+plt.plot(results['Pos x'], results['Pos y'])
 plt.show()

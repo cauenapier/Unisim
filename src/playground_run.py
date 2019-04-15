@@ -11,6 +11,7 @@ from Unisim.environment.atmosphere import ISA1976
 from Unisim.environment.wind import NoWind
 from Unisim.environment.gravity import SimpleNewton
 from Unisim.environment.environment import Environment
+from Unisim.constraints.constraints import DampedSpring_3DOF
 
 
 def main():
@@ -18,18 +19,18 @@ def main():
     t0 = 0
     #% Position, velocity, acceleration
     x0 = np.zeros(6)
-    x0[0] = 6371000 + 200000
+    x0[0] = 6371000 + 100
     #x0[3] = 20
-    x0[4] = 7600
+    #x0[4] = 7600
 
 
     Ball1 = Body_RoundEarth(t0,x0, name="Ball1")
     Ball1._set_mass(10)
 
-    #x0_2 = copy.deepcopy(x0)
-    #x0_2[0] = x0_2[0] + 10
-    #Ball2 = Body_RoundEarth(t0,x0_2, name="Ball2")
-    #Ball2._set_mass(10)
+    x0_2 = copy.deepcopy(x0)
+    x0_2[0] = x0_2[0] + 10
+    Ball2 = Body_RoundEarth(t0,x0_2, name="Ball2")
+    Ball2._set_mass(10)
 
     #x0_3 = copy.deepcopy(x0_2)
     #x0_3[0] = x0_3[0] + 10
@@ -44,22 +45,28 @@ def main():
     Env = Environment(atmo, gravity, wind)
 
     Ball1.set_environment(Env)
-    #Ball2.set_environment(Env)
+    Ball2.set_environment(Env)
     #Ball3.set_environment(Env)
 
 
-    #Balls = [Ball1, Ball2, Ball3]
-    Balls = [Ball1]
+    Balls = [Ball1, Ball2]
+
+    rest_length = 9
+    stiffness = 10
+    damping = 0
+    spring = DampedSpring_3DOF(Ball1, Ball2, rest_length, stiffness, damping)
 
 
-    step_size = 1
+
+    step_size = 00.1
     t0 = 0
-    tf = 3
+    tf = 10
 
 
     for Ball in Balls:
         for ii in np.arange(t0,tf, step_size):
             Ball.step(step_size)
+
 
 
     results1 = pd.DataFrame(Ball1.results)

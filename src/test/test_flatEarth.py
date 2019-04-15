@@ -14,11 +14,20 @@ import pytest
 
 t0 = 0
 x0 = np.zeros(6)
-x0[2] = 10
+x0[2] = 10 # Initial Height
+mass = 10
 
-Ball1 = Body_FlatEarth(t0,x0)
+Ball = Body_FlatEarth(t0,x0)
+Ball._set_mass(mass)
 
 atmo = ISA1976()
 gravity = VerticalNewton()
 wind = NoWind()
 Env = Environment(atmo, gravity, wind)
+Ball.set_environment(Env)
+
+def test_gravity_force():
+    Ball.step(0.01)
+    expected_Gravity_Force = np.array([0, 0, -98.1])
+
+    assert_almost_equal(Ball.calc_gravity(mass), expected_Gravity_Force, decimal=1)

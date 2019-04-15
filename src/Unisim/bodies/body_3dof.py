@@ -41,6 +41,9 @@ class Body(object):
         # Environment
         self._environment = None
 
+        # Constraints
+        self._constraints = None
+
         if options is None:
             options = {}
         self._method = method
@@ -109,6 +112,13 @@ class Body(object):
     def set_environment(self, environment):
         self._environment = environment
 
+    # TODO: A body should be able to hold multiple constraints
+    @property
+    def constraint(self):
+        return self._constraint
+
+    def set_constraint(self, constraint):
+        self._constraint = constraint
 
     def sleep(self):
         """ Forces a body to sleep and stop propagation.
@@ -186,18 +196,21 @@ class Body_FlatEarth(Body):
         mass = self._mass
         height = self._state_vector[2]
 
+        # Zeroing the total forces variable
+        self.total_forces = np.zeros(3)
 
+        # === GRAVITY ===
         self._environment.gravity.update(height)
-        Fg = self._environment.gravity._vector*mass
+        self.calc_gravity(mass)
 
-
-        forces = Fg
-
-        self.total_forces = forces
-
-        rv = self._system_equations_3DOF(t,x,mass,forces)
+        rv = self._system_equations_3DOF(t,x,mass,self.total_forces)
 
         return rv
+
+    def calc_gravity(self, mass):
+        Fg = self._environment.gravity._vector*mass
+        self.total_forces = self.total_forces + Fg
+        return Fg
 
     def _system_equations_3DOF(self, time, state_vector, mass, forces):
         """
@@ -218,8 +231,6 @@ class Body_FlatEarth(Body):
 class Body_RoundEarth(Body):
     """
     """
-    _cD = 0.5
-
 
     def fun(self, t, x):
         """
@@ -229,16 +240,37 @@ class Body_RoundEarth(Body):
         pos = self._state_vector[0:3]
         vel = self._state_vector[3:6]
 
+
+        # Check Stop Condition
+        #stop_condition()
+        # Zeroing the total forces variable
+        self.total_forces = np.zeros(3)
+
+        # === GRAVITY ===
         self._environment.gravity.update(pos)
-        Fg = self._environment.gravity._vector*mass
-        #Fd = self.drag(vel, self._cD)
-        forces = Fg
+        self.calc_gravity(mass)
 
-        self.total_forces = forces
+        # === AERODYNAMICS ===
+        #self._environment.atmosphere.update(pos)
+        #self.calc_aero()
 
-        rv = self._system_equations_3DOF(t,x,mass,forces)
+        # === CONSTRAINTS ===
+        #
+        #
+
+        rv = self._system_equations_3DOF(t,x,mass,self.total_forces)
 
         return rv
+
+    def stop_condition():
+        """
+        """
+
+    def calc_gravity(self, mass):
+        Fg = self._environment.gravity._vector*mass
+        self.total_forces = self.total_forces + Fg
+        return Fg
+
 
     def drag(self, vel, cD):
         height
