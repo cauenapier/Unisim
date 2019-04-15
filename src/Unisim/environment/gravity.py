@@ -40,6 +40,18 @@ class Gravity(object):
     def update(self, system):
         pass
 
+class NoGravity(Gravity):
+    """No Gravity.
+    """
+
+    def __init__(self):
+        self._magnitude = 0
+        self._versor = np.zeros(3)
+        self._vector = np.zeros(3)
+
+    def update(self, height):
+        pass
+
 
 class VerticalConstant(Gravity):
     """Vertical constant gravity model.

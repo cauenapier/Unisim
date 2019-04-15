@@ -112,13 +112,14 @@ class Body(object):
     def set_environment(self, environment):
         self._environment = environment
 
-    # TODO: A body should be able to hold multiple constraints
+
     @property
-    def constraint(self):
-        return self._constraint
+    def constraints(self):
+        return self._constraints
 
     def set_constraint(self, constraint):
-        self._constraint = constraint
+        # TODO: A body should be able to hold multiple constraints
+        self._constraints = constraint
 
     def sleep(self):
         """ Forces a body to sleep and stop propagation.
@@ -203,9 +204,24 @@ class Body_FlatEarth(Body):
         self._environment.gravity.update(height)
         self.calc_gravity(mass)
 
+        # === CONSTRAINTS ===
+        self.calc_constraint_force()
+
+
         rv = self._system_equations_3DOF(t,x,mass,self.total_forces)
 
         return rv
+
+    def calc_constraint_force(self):
+        Fk = self._constraints._force_vector_a2b
+        if self._constraints.b is self:
+            Fk = -Fk
+
+        self.total_forces = self.total_forces + Fk
+        return Fk
+
+    def check_self(self):
+        return self
 
     def calc_gravity(self, mass):
         Fg = self._environment.gravity._vector*mass
@@ -284,7 +300,6 @@ class Body_RoundEarth(Body):
         else:
             versor = vel/v
             Fd = -(0.5*rho*v**2)*cD*versor
-            print
 
 
         return Fd

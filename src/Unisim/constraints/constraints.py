@@ -17,7 +17,7 @@ class Constraint(object):
     b = property(lambda self: self._b,
         doc="""The second of the two bodies constrained""")
 
-class DampedSpring_3DOF(Constraint):
+class Tension_Only_Spring_3DOF(Constraint):
     """
     """
     def __init__(self, a, b, rest_length, stiffness, damping):
@@ -37,19 +37,28 @@ class DampedSpring_3DOF(Constraint):
         self._rest_length = rest_length
         self._stiffness = stiffness
         self._damping = damping
-        self._force_vector = None
+        self._force_vector_a2b = None
+
+        a.set_constraint(self)
+        b.set_constraint(self)
 
     def _calcForce_a2b(self):
         pos_a = self._a._state_vector[0:3]
         pos_b = self._b._state_vector[0:3]
 
         dist_vector = (pos_b - pos_a)
+        print(self._a._time, dist_vector)
         dist_norm = np.linalg.norm(pos_b - pos_a)
         dist_versor = dist_vector/dist_norm
 
-        F_k = (dist_norm-self._rest_length)*self._stiffness*dist_versor
+        if dist_norm > self._rest_length:
+            F_k = (dist_norm-self._rest_length)*self._stiffness*dist_versor
+        else:
+            F_k = 0
 
-        self._force_vector = F_k
+        self._force_vector_a2b = F_k
 
-    def _get_force_vector(self):
-        return self._force_vector
+        return F_k
+
+    def _get_force_vector_a2b(self):
+        return self._force_vector_a2b

@@ -3,8 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from Unisim.bodies.body_3dof import *
 from Unisim.environment import *
-
-
 from Unisim.environment.atmosphere import ISA1976
 from Unisim.environment.wind import NoWind
 from Unisim.environment.gravity import SimpleNewton
@@ -30,6 +28,9 @@ Env = Environment(atmo, gravity, wind)
 
 Sat.set_environment(Env)
 
+step_size = 00.1
+t0 = 0
+tf = 10
 
 for ii in range(0,10000):
     Sat.step(1)
