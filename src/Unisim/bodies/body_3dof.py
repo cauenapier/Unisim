@@ -191,6 +191,7 @@ class Body(object):
 class Body_FlatEarth(Body):
     """
     """
+
     def fun(self, t, x):
         """
         """
@@ -204,6 +205,9 @@ class Body_FlatEarth(Body):
         self._environment.gravity.update(height)
         self.calc_gravity(mass)
 
+        # === AERO ===
+
+
         # === CONSTRAINTS ===
         self.calc_constraint_force()
 
@@ -213,6 +217,10 @@ class Body_FlatEarth(Body):
         return rv
 
     def calc_constraint_force(self):
+        """
+        Calculates Constraint Force and add up to total Forces
+        Forces are from A to B. If applied to body B, it inverts the sign.
+        """
         Fk = self._constraints._force_vector_a2b
         if self._constraints.b is self:
             Fk = -Fk
@@ -220,8 +228,6 @@ class Body_FlatEarth(Body):
         self.total_forces = self.total_forces + Fk
         return Fk
 
-    def check_self(self):
-        return self
 
     def calc_gravity(self, mass):
         Fg = self._environment.gravity._vector*mass
@@ -271,7 +277,7 @@ class Body_RoundEarth(Body):
         #self.calc_aero()
 
         # === CONSTRAINTS ===
-        #
+        self.calc_constraint_force()
         #
 
         rv = self._system_equations_3DOF(t,x,mass,self.total_forces)
@@ -281,6 +287,18 @@ class Body_RoundEarth(Body):
     def stop_condition():
         """
         """
+
+    def calc_constraint_force(self):
+        """
+        Calculates Constraint Force and add up to total Forces
+        Forces are from A to B. If applied to body B, it inverts the sign.
+        """
+        Fk = self._constraints._force_vector_a2b
+        if self._constraints.b is self:
+            Fk = -Fk
+
+        self.total_forces = self.total_forces + Fk
+        return Fk
 
     def calc_gravity(self, mass):
         Fg = self._environment.gravity._vector*mass

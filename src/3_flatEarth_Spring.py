@@ -38,8 +38,8 @@ Ball2.set_environment(Env)
 Balls = [Ball1, Ball2]
 
 rest_length = 7
-stiffness = 1000
-damping = 0
+stiffness = 5000
+damping = 100
 spring = Tension_Only_Spring_3DOF(Ball1, Ball2, rest_length, stiffness, damping)
 
 step_size = 0.01

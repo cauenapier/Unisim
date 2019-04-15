@@ -22,7 +22,6 @@ class Tension_Only_Spring_3DOF(Constraint):
     """
     def __init__(self, a, b, rest_length, stiffness, damping):
         """
-
         :param Body a: Body a
         :param Body b: Body b
         :param anchor_a: Anchor point a, relative to body a
@@ -44,21 +43,27 @@ class Tension_Only_Spring_3DOF(Constraint):
 
     def _calcForce_a2b(self):
         pos_a = self._a._state_vector[0:3]
+        vel_a = self._a._state_vector[3:6]
         pos_b = self._b._state_vector[0:3]
+        vel_b = self._b._state_vector[3:6]
 
-        dist_vector = (pos_b - pos_a)
-        print(self._a._time, dist_vector)
-        dist_norm = np.linalg.norm(pos_b - pos_a)
-        dist_versor = dist_vector/dist_norm
+        rel_position = (pos_b - pos_a)
+        rel_position_norm = np.linalg.norm(pos_b - pos_a)
+        rel_position_versor = rel_position/rel_position_norm
 
-        if dist_norm > self._rest_length:
-            F_k = (dist_norm-self._rest_length)*self._stiffness*dist_versor
+        rel_velocity_norm = np.linalg.norm(vel_b - vel_a)
+
+        if rel_position_norm > self._rest_length:
+            F_k = (rel_position_norm-self._rest_length)*self._stiffness
+            F_c = (rel_velocity_norm)*self._damping
         else:
             F_k = 0
+            F_c = 0
 
-        self._force_vector_a2b = F_k
+        Force = (F_k + F_c)*rel_position_versor
+        self._force_vector_a2b = Force
 
-        return F_k
+        return Force
 
     def _get_force_vector_a2b(self):
         return self._force_vector_a2b
