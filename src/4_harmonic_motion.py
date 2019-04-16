@@ -17,54 +17,57 @@ t0 = 0
 x0_1 = np.zeros(6)
 x0_2 = np.zeros(6)
 
-x0_1[2] = 1010
-x0_2[2] = 1000
+x0_1[2] = 4
+x0_2[2] = 10
 
 Ball1 = Body_FlatEarth(t0,x0_1)
-Ball1._set_mass(500)
-Ball1._set_name("Fixed")
-Ball2 = Body_FlatEarth(t0,x0_2)
-Ball2._set_mass(500)
-Ball2._set_name("Ball 2")
+Ball1._set_mass(2)
+Ball1._set_name("Ball 1")
+FixedPoint = Body_FlatEarth(t0,x0_2)
+FixedPoint._set_mass(10000)
+FixedPoint._set_name("Fixed Point")
 
 atmo = ISA1976()
-gravity = NoGravity()
+gravity = VerticalNewton()
 wind = NoWind()
 Env = Environment(atmo, gravity, wind)
 
 Ball1.set_environment(Env)
-Ball2.set_environment(Env)
+FixedPoint.set_environment(Env)
 
-Balls = [Ball1, Ball2]
 
 rest_length = 5
-stiffness = 1000
-damping = 0
-spring = Spring(Ball1, Ball2, rest_length, stiffness, damping)
+stiffness = 10
+damping = 1
+spring = Tension_Only_Spring_3DOF(FixedPoint, Ball1, rest_length, stiffness, damping)
 
-step_size = 1
+step_size = 0.01
 t0 = 0
-tf = 1
+tf = 200
 
-spring_forces = np.zeros(3)
-
-for ii in np.arange(t0,tf, step_size):
+"""
+Iteraton loop. For every time step, the spring (constraint) forces are calculated
+and the Ball object is propagated. The FixedPoint object is not in the iteration loop.
+"""
+for ii in np.arange(t0,tf,step_size):
     spring._calcForce_a2b()
-    for Ball in Balls:
-        Ball.step(step_size)
-        print(Ball._name, Ball._state_vector[0:3])
-        print("")
+    Ball1.step(step_size)
 #        print(Ball._get_name(), Ball.total_forces)
 #    print("")
 
 
 results1 = pd.DataFrame(Ball1.results)
-results2 = pd.DataFrame(Ball2.results)
+results2 = pd.DataFrame(FixedPoint.results)
 
 #plt.plot(results1['Pos z'])
 #plt.plot(results2['Pos z'])
 #plt.plot(results1['Acc z'])
 #plt.plot(results2['Acc z'])
 #plt.show()
-plt.plot(results1['Time'], results1['Pos z']-results2['Pos z'])
-plt.show()
+
+#fig, ax1 = plt.subplots()
+#ax1.plot(results1['Time'], results1['Pos z'])
+#ax2 = ax1.twinx()
+#ax2.plot(results1['Time'], results1['Acc z'])
+#plt.grid(which='major', axis='both', linestyle='--')
+#plt.show()

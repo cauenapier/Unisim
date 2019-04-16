@@ -23,6 +23,7 @@ class Body(object):
     'Acc y': 'acc_y',
     'Acc z' : 'acc_z',
     'Mass' : '_mass',
+    'Total Forces' : 'total_forces'
     }
 
     def __init__(self, t0, x0, method='RK45', name=None, options=None, save_vars=None):
@@ -40,7 +41,8 @@ class Body(object):
 
         # Environment
         self._environment = None
-
+        # Aerodynamics
+        self._aero = None
         # Constraints
         self._constraints = None
 
@@ -53,7 +55,6 @@ class Body(object):
             self._save_vars = self._default_save_vars
         # Initialize results structure
         self.results = {name: [] for name in self._save_vars}
-
 
         # Other variables
         self._isSleeping = 0
@@ -112,7 +113,6 @@ class Body(object):
     def set_environment(self, environment):
         self._environment = environment
 
-
     @property
     def constraints(self):
         return self._constraints
@@ -144,6 +144,11 @@ class Body(object):
         self._state_vector_dot = state_dot
         return state_dot
 
+    def calculate_forces(self):
+        """
+        """
+        raise NotImplementedError
+
     def step(self, dt):
         """Integrate the system from current time to t_end.
 
@@ -168,6 +173,7 @@ class Body(object):
 
             method = self._method
             # TODO: prepare to use jacobian in case it is defined
+            self.calculate_forces()
             sol = solve_ivp(self.fun_wrapped, t_span, x0, method=method,
                             **self._options)
 
@@ -194,6 +200,14 @@ class Body_FlatEarth(Body):
 
     def fun(self, t, x):
         """
+        TODO: remove forces calculation from this function because it is being called every integrator iteration
+        """
+        rv = self._system_equations_3DOF(t,x,self._mass,self.total_forces)
+
+        return rv
+
+    def calculate_forces(self):
+        """
         """
         mass = self._mass
         height = self._state_vector[2]
@@ -206,17 +220,14 @@ class Body_FlatEarth(Body):
         self.calc_gravity(mass)
 
         # === AERO ===
-
+        if self._aero is not None:
+            self.calc_aero_forces()
 
         # === CONSTRAINTS ===
-        self.calc_constraint_force()
+        if self._constraints is not None:
+            self.calc_constraint_forces()
 
-
-        rv = self._system_equations_3DOF(t,x,mass,self.total_forces)
-
-        return rv
-
-    def calc_constraint_force(self):
+    def calc_constraint_forces(self):
         """
         Calculates Constraint Force and add up to total Forces
         Forces are from A to B. If applied to body B, it inverts the sign.
@@ -224,10 +235,13 @@ class Body_FlatEarth(Body):
         Fk = self._constraints._force_vector_a2b
         if self._constraints.b is self:
             Fk = -Fk
-
         self.total_forces = self.total_forces + Fk
         return Fk
 
+    def calc_aero_forces(self):
+        """
+        """
+        raise NotImplementedError
 
     def calc_gravity(self, mass):
         Fg = self._environment.gravity._vector*mass
@@ -257,14 +271,19 @@ class Body_RoundEarth(Body):
     def fun(self, t, x):
         """
         """
+        rv = self._system_equations_3DOF(t,x,self._mass,self.total_forces)
+
+        return rv
+
+    def stop_condition():
+        """
+        """
+    def calculate_forces(self):
+        """
+        """
         mass = self._mass
-
         pos = self._state_vector[0:3]
-        vel = self._state_vector[3:6]
 
-
-        # Check Stop Condition
-        #stop_condition()
         # Zeroing the total forces variable
         self.total_forces = np.zeros(3)
 
@@ -272,23 +291,15 @@ class Body_RoundEarth(Body):
         self._environment.gravity.update(pos)
         self.calc_gravity(mass)
 
-        # === AERODYNAMICS ===
-        #self._environment.atmosphere.update(pos)
-        #self.calc_aero()
+        # === AERO ===
+        if self._aero is not None:
+            self.calc_aero_forces()
 
         # === CONSTRAINTS ===
-        self.calc_constraint_force()
-        #
+        if self._constraints is not None:
+            self.calc_constraint_forces()
 
-        rv = self._system_equations_3DOF(t,x,mass,self.total_forces)
-
-        return rv
-
-    def stop_condition():
-        """
-        """
-
-    def calc_constraint_force(self):
+    def calc_constraint_forces(self):
         """
         Calculates Constraint Force and add up to total Forces
         Forces are from A to B. If applied to body B, it inverts the sign.
@@ -306,21 +317,21 @@ class Body_RoundEarth(Body):
         return Fg
 
 
-    def drag(self, vel, cD):
-        height
-
-        self._environment.atmosphere.update(height)
-        rho = self._environment.atmosphere._rho
-        v = np.linalg.norm(vel)
-
-        if v == 0:
-            Fd = 0
-        else:
-            versor = vel/v
-            Fd = -(0.5*rho*v**2)*cD*versor
-
-
-        return Fd
+#    def drag(self, vel, cD):
+#        height
+#
+#        self._environment.atmosphere.update(height)
+#        rho = self._environment.atmosphere._rho
+#        v = np.linalg.norm(vel)
+#
+#        if v == 0:
+#            Fd = 0
+#        else:
+#            versor = vel/v
+#            Fd = -(0.5*rho*v**2)*cD*versor
+#
+#
+#        return Fd
 
     def _system_equations_3DOF(self, time, state_vector, mass, forces):
         """

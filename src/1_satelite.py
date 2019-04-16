@@ -28,12 +28,12 @@ Env = Environment(atmo, gravity, wind)
 
 Sat.set_environment(Env)
 
-step_size = 00.1
+step_size = 1
 t0 = 0
-tf = 10
+tf = 10000
 
-for ii in range(0,10000):
-    Sat.step(1)
+for ii in np.arange(t0,tf, step_size):
+    Sat.step(step_size)
     #print(Sat.altitude())
 results = pd.DataFrame(Sat.results)
 
