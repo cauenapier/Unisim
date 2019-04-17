@@ -56,7 +56,7 @@ class DampedSpring(Constraint):
 
         return Force
 
-class Tension_Only_Spring_3DOF(Constraint):
+class Rope_3DOF(Constraint):
     """
     """
     def __init__(self, a, b, rest_length, stiffness, damping):
@@ -81,37 +81,50 @@ class Tension_Only_Spring_3DOF(Constraint):
         b.set_constraint(self)
 
     def _calcForce_a2b(self):
+        """Ref: Validation of Multibody Program to Optimize
+        Simulated Trajectories II Parachute Simulation
+        With Interacting Forces
+        Behzad Raiszadeh and Eric M. Queen
+
+        TODO: Remove redundant checks, code can be optmized.
+        """
+
         pos_a = self._a._state_vector[0:3]
         vel_a = self._a._state_vector[3:6]
         pos_b = self._b._state_vector[0:3]
         vel_b = self._b._state_vector[3:6]
 
-        # Relative Position
+        # Strain
         rel_position_norm = np.linalg.norm(pos_b - pos_a)
         if rel_position_norm == 0:
             rel_position_versor = np.zeros(3)
+            e = 0
         else:
             rel_position_versor = (pos_b - pos_a)/rel_position_norm
+            e = (rel_position_norm - self._rest_length)/self._rest_length
 
-        # Relative Velocity
+        # Strain Rate
         rel_velocity_norm = np.linalg.norm(vel_b - vel_a)
         if rel_velocity_norm == 0:
             rel_velocity_versor = np.zeros(3)
+            e_dot = 0
         else:
             rel_velocity_versor = (vel_b - vel_a)/rel_velocity_norm
+            e_dot = ( (np.dot(vel_b, rel_position_versor)) - (np.dot(vel_a, rel_position_versor)) )/self._rest_length
 
-        # Tension Only
+        if e < 0:
+            e = 0
+        if e_dot < 0:
+            e_dot = 0
+
         if rel_position_norm >= self._rest_length:
-            F_k = (rel_position_norm-self._rest_length)*self._stiffness*rel_position_versor
-            F_c = (rel_velocity_norm)*self._damping*rel_velocity_versor
+            F_ab = (self._stiffness*e + self._damping*e_dot)*self._rest_length*rel_position_versor
         else:
-            F_k = 0
-            F_c = 0
+            F_ab = 0
 
-        Force = (F_k + F_c)
-        self._force_vector_a2b = Force
+        self._force_vector_a2b = F_ab
 
-        return Force
+        return F_ab
 
     def _get_force_vector_a2b(self):
         return self._force_vector_a2b

@@ -4,6 +4,11 @@ from scipy.integrate import solve_ivp
 from abc import abstractmethod
 import pandas as pd
 
+"""
+TODO: A Body class should reference to an orbiting body, instead of fixing it to earth.
+Then update its parameters
+TODO: Should I separate system equations from the Body Class?
+"""
 
 class Body(object):
     """A rigid body
@@ -275,9 +280,6 @@ class Body_RoundEarth(Body):
 
         return rv
 
-    def stop_condition():
-        """
-        """
     def calculate_forces(self):
         """
         """
@@ -315,7 +317,6 @@ class Body_RoundEarth(Body):
         Fg = self._environment.gravity._vector*mass
         self.total_forces = self.total_forces + Fg
         return Fg
-
 
 #    def drag(self, vel, cD):
 #        height

@@ -17,46 +17,47 @@ t0 = 0
 x0_1 = np.zeros(6)
 x0_2 = np.zeros(6)
 
-x0_1[2] = 4
-x0_2[2] = 10
+x0_1[2] = -5
+x0_1[0] = 0
 
-Ball1 = Body_FlatEarth(t0,x0_1)
-Ball1._set_mass(2)
-Ball1._set_name("Ball 1")
+Ball = Body_FlatEarth(t0,x0_1)
+Ball._set_mass(10)
+Ball._set_name("Ball")
 FixedPoint = Body_FlatEarth(t0,x0_2)
 FixedPoint._set_mass(10000)
 FixedPoint._set_name("Fixed Point")
 
 atmo = ISA1976()
 gravity = VerticalNewton()
+#gravity = NoGravity()
 wind = NoWind()
 Env = Environment(atmo, gravity, wind)
 
-Ball1.set_environment(Env)
-FixedPoint.set_environment(Env)
-
+Ball.set_environment(Env)
+#FixedPoint.set_environment(Env) # If the fixed point is not being integrate, there is no need to assign an environment to it
 
 rest_length = 5
 stiffness = 10
 damping = 1
-spring = Tension_Only_Spring_3DOF(FixedPoint, Ball1, rest_length, stiffness, damping)
+spring = Rope_3DOF(FixedPoint, Ball, rest_length, stiffness, damping)
+#spring = DampedSpring(FixedPoint, Ball, rest_length, stiffness, damping)
 
 step_size = 0.01
 t0 = 0
-tf = 200
+tf = 100
 
 """
 Iteraton loop. For every time step, the spring (constraint) forces are calculated
 and the Ball object is propagated. The FixedPoint object is not in the iteration loop.
 """
-for ii in np.arange(t0,tf,step_size):
+for ii in np.arange(t0, tf, step_size):
     spring._calcForce_a2b()
-    Ball1.step(step_size)
+    Ball.step(step_size)
 #        print(Ball._get_name(), Ball.total_forces)
 #    print("")
 
 
-results1 = pd.DataFrame(Ball1.results)
+results1 = pd.DataFrame(Ball.results)
 results2 = pd.DataFrame(FixedPoint.results)
 
 #plt.plot(results1['Pos z'])
@@ -66,8 +67,14 @@ results2 = pd.DataFrame(FixedPoint.results)
 #plt.show()
 
 #fig, ax1 = plt.subplots()
+#ax1.plot(results1['Pos x'], results1['Pos z'])
 #ax1.plot(results1['Time'], results1['Pos z'])
 #ax2 = ax1.twinx()
 #ax2.plot(results1['Time'], results1['Acc z'])
 #plt.grid(which='major', axis='both', linestyle='--')
 #plt.show()
+
+plt.plot(results1['Time'], results1['Pos z'])
+plt.show()
+plt.plot(results1['Time'], results1['Pos x'])
+plt.show()
