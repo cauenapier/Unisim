@@ -49,7 +49,7 @@ class Body(object):
         # Aerodynamics
         self._aero = None
         # Constraints
-        self._constraints = None
+        self._constraints = []
 
         if options is None:
             options = {}
@@ -122,9 +122,10 @@ class Body(object):
     def constraints(self):
         return self._constraints
 
-    def set_constraint(self, constraint):
-        # TODO: A body should be able to hold multiple constraints
-        self._constraints = constraint
+    def add_constraint(self, constraint):
+
+        self._constraints.append(constraint)
+
 
     def sleep(self):
         """ Forces a body to sleep and stop propagation.
@@ -225,20 +226,22 @@ class Body_FlatEarth(Body):
         self.calc_gravity(mass)
 
         # === AERO ===
+        #self.calc_drag_TEMP(self._state_vector[3:6])
         if self._aero is not None:
             self.calc_aero_forces()
 
         # === CONSTRAINTS ===
-        if self._constraints is not None:
-            self.calc_constraint_forces()
+        if self._constraints is not []:
+            for constraint in self._constraints:
+                self.calc_constraints_forces(constraint)
 
-    def calc_constraint_forces(self):
+    def calc_constraints_forces(self, constraint):
         """
         Calculates Constraint Force and add up to total Forces
         Forces are from A to B. If applied to body B, it inverts the sign.
         """
-        Fk = self._constraints._force_vector_a2b
-        if self._constraints.b is self:
+        Fk = constraint._force_vector_a2b
+        if constraint.b is self:
             Fk = -Fk
         self.total_forces = self.total_forces + Fk
         return Fk
@@ -252,6 +255,26 @@ class Body_FlatEarth(Body):
         Fg = self._environment.gravity._vector*mass
         self.total_forces = self.total_forces + Fg
         return Fg
+
+    def calc_drag_TEMP(self, vel):
+        """
+        TEMPORARY METHOD
+        """
+        #height
+
+        #self._environment.atmosphere.update(height)
+        #rho = self._environment.atmosphere._rho
+        v = np.linalg.norm(vel)
+
+        if v == 0:
+            Fd = 0
+        else:
+            versor = vel/v
+            #Fd = -(0.5*rho*v**2)*cD*versor
+            Fd = -(v**2)*versor
+
+        self.total_forces = self.total_forces + Fd
+        return Fd
 
     def _system_equations_3DOF(self, time, state_vector, mass, forces):
         """
@@ -296,12 +319,14 @@ class Body_RoundEarth(Body):
         # === AERO ===
         if self._aero is not None:
             self.calc_aero_forces()
+        #calc_drag_TEMP(vel)
 
         # === CONSTRAINTS ===
-        if self._constraints is not None:
-            self.calc_constraint_forces()
+        if self._constraints is not []:
+            for constraint in self._constraints:
+                self.calc_constraints_forces(constraint)
 
-    def calc_constraint_forces(self):
+    def calc_constraints_forces(self):
         """
         Calculates Constraint Force and add up to total Forces
         Forces are from A to B. If applied to body B, it inverts the sign.
@@ -318,21 +343,31 @@ class Body_RoundEarth(Body):
         self.total_forces = self.total_forces + Fg
         return Fg
 
-#    def drag(self, vel, cD):
-#        height
-#
-#        self._environment.atmosphere.update(height)
-#        rho = self._environment.atmosphere._rho
-#        v = np.linalg.norm(vel)
-#
-#        if v == 0:
-#            Fd = 0
-#        else:
-#            versor = vel/v
-#            Fd = -(0.5*rho*v**2)*cD*versor
-#
-#
-#        return Fd
+    def calc_aero_forces(self):
+        """
+        """
+        raise NotImplementedError
+
+    def calc_drag_TEMP(self, vel):
+        """
+        TEMPORARY METHOD
+        """
+        #height
+
+        #self._environment.atmosphere.update(height)
+        #rho = self._environment.atmosphere._rho
+        v = np.linalg.norm(vel)
+
+        if v == 0:
+            Fd = 0
+        else:
+            versor = vel/v
+            #Fd = -(0.5*rho*v**2)*cD*versor
+            Fd = -(0.1*v**2)*versor
+
+        self.total_forces = self.total_forces + Fd
+
+        return Fd
 
     def _system_equations_3DOF(self, time, state_vector, mass, forces):
         """

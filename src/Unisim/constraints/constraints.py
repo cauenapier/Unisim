@@ -25,8 +25,8 @@ class DampedSpring(Constraint):
         self._damping = damping
         self._force_vector_a2b = None
 
-        a.set_constraint(self)
-        b.set_constraint(self)
+        a.add_constraint(self)
+        b.add_constraint(self)
 
 
     def _calcForce_a2b(self):
@@ -56,7 +56,7 @@ class DampedSpring(Constraint):
 
         return Force
 
-class Rope_3DOF(Constraint):
+class Ellastic_Rope_3DOF(Constraint):
     """
     """
     def __init__(self, a, b, rest_length, stiffness, damping):
@@ -77,8 +77,8 @@ class Rope_3DOF(Constraint):
         self._damping = damping
         self._force_vector_a2b = None
 
-        a.set_constraint(self)
-        b.set_constraint(self)
+        a.add_constraint(self)
+        b.add_constraint(self)
 
     def _calcForce_a2b(self):
         """Ref: Validation of Multibody Program to Optimize

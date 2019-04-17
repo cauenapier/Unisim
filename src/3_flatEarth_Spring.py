@@ -11,6 +11,9 @@ from Unisim.environment.gravity import *
 from Unisim.environment.environment import Environment
 from Unisim.constraints.constraints import *
 
+"""
+CHANGE CODE; WRONG.
+"""
 
 t0 = 0
 #% Position, velocity, acceleration
@@ -40,11 +43,11 @@ Balls = [Ball1, Ball2]
 rest_length = 5
 stiffness = 1000
 damping = 0
-spring = Spring(Ball1, Ball2, rest_length, stiffness, damping)
+spring = DampedSpring(Ball1, Ball2, rest_length, stiffness, damping)
 
-step_size = 1
+step_size = 0.1
 t0 = 0
-tf = 1
+tf = 100
 
 spring_forces = np.zeros(3)
 
