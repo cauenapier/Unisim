@@ -287,7 +287,7 @@ class Body_FlatEarth(Body):
         self.total_torques = np.zeros(3)
 
         if self._time < 1:
-            self.total_torques = np.array([10,10,10])
+            self.total_torques = np.array([1,1,1])
         else:
             self.total_torques = np.zeros(3)
 
@@ -335,7 +335,6 @@ class Body_FlatEarth(Body):
         # Acceleration in Body Coordinates
         Acc = forces/mass + Acc_t
         # Transform Velocity Into Local coordinates
-        #Vel_earth = quaternion_rotation(quaternion, Vel)
         Vel_earth = np.matmul(self._DCM.transpose(), Vel)
 
         Ang_Acc = np.matmul(np.linalg.inv(MOI), (torques - np.cross(Ang_Vel, np.matmul(MOI, Ang_Vel))))
@@ -343,6 +342,7 @@ class Body_FlatEarth(Body):
         p = Ang_Vel[0]
         q = Ang_Vel[1]
         r = Ang_Vel[2]
+
         lamb = self._k_quat * (1.0 - Quat[0]**2 - Quat[1]**2 - Quat[2]**2 - Quat[3]**2)
         quat_dot0 = 0.5 * (-p*Quat[1] - q*Quat[2] - r*Quat[3] ) + lamb * Quat[0]
         quat_dot1 = 0.5 * (p*Quat[0] + r*Quat[2] - q*Quat[3] ) + lamb * Quat[1]

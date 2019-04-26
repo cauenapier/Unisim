@@ -33,6 +33,8 @@ class Body(object):
 
     def __init__(self, t0, x0, method='RK45', name=None, options=None, save_vars=None):
         """
+
+        x0 = [pos_x, pos_y, pos_z, vel_x, vel_y, vel_z]
         """
         self._name = name
         self._time = t0
@@ -47,7 +49,7 @@ class Body(object):
         # Environment
         self._environment = None
         # Aerodynamics
-        self._aero = None
+        self._aerodynamics = None
         # Constraints
         self._constraints = []
 
@@ -206,7 +208,6 @@ class Body_FlatEarth(Body):
 
     def fun(self, t, x):
         """
-        TODO: remove forces calculation from this function because it is being called every integrator iteration
         """
         rv = self._system_equations_3DOF(t,x,self._mass,self.total_forces)
 
@@ -227,7 +228,7 @@ class Body_FlatEarth(Body):
 
         # === AERO ===
         #self.calc_drag_TEMP(self._state_vector[3:6])
-        if self._aero is not None:
+        if self._aerodynamics is not None:
             self.calc_aero_forces()
 
         # === CONSTRAINTS ===
@@ -317,7 +318,7 @@ class Body_RoundEarth(Body):
         self.calc_gravity(mass)
 
         # === AERO ===
-        if self._aero is not None:
+        if self._aerodynamics is not None:
             self.calc_aero_forces()
         #calc_drag_TEMP(vel)
 

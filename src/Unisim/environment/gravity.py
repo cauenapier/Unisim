@@ -58,11 +58,11 @@ class VerticalConstant(Gravity):
     """
 
     def __init__(self):
-        self._magnitude = GRAVITY
-        self._versor = np.array([0, 0, 1], dtype=float)
+        self._magnitude = 9.81
+        self._versor = np.array([0, 0, -1], dtype=float)
         self._vector = self.magnitude * self.versor
 
-    def update(self):
+    def update(self, height):
         pass
 
 

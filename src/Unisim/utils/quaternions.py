@@ -88,8 +88,8 @@ def check_unitnorm(quaternion):
     check_value = np.isclose((q_0 ** 2 + q_1 ** 2 + q_2 ** 2 + q_3 ** 2), [1])
 
     if not check_value:
-        #pass
-        print("Quaternion Error:", error)
+        pass
+        #print("Quaternion Error:", error)
 
 def quaternion_rotation(quaternion, vector):
     quaternion_normalized = quaternion/np.linalg.norm(quaternion)
