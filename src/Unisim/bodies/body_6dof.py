@@ -294,6 +294,7 @@ class Body_FlatEarth(Body):
         # === GRAVITY ===
         self._environment.gravity.update(height)
         self.calc_gravity(mass, DCM)
+        #self.calc_gravity_quat(mass, self._state_vector[6:10])
 
         # === AERO ===
         if self._aerodynamics is not None:
@@ -309,6 +310,11 @@ class Body_FlatEarth(Body):
 
     def calc_gravity(self, mass, DCM):
         Fg = np.matmul(DCM, self._environment.gravity._vector*mass)
+        self.total_forces = self.total_forces + Fg
+        return Fg
+
+    def calc_gravity_quat(self, mass, quat):
+        Fg = quaternion_rotation(quat, self._environment.gravity._vector*mass)
         self.total_forces = self.total_forces + Fg
         return Fg
 
@@ -336,6 +342,8 @@ class Body_FlatEarth(Body):
         Acc = forces/mass + Acc_t
         # Transform Velocity Into Local coordinates
         Vel_earth = np.matmul(self._DCM.transpose(), Vel)
+        #Vel_earth = quaternion_rotation(Quat, Vel)
+        print(Vel_earth)
 
         Ang_Acc = np.matmul(np.linalg.inv(MOI), (torques - np.cross(Ang_Vel, np.matmul(MOI, Ang_Vel))))
 
@@ -343,8 +351,8 @@ class Body_FlatEarth(Body):
         q = Ang_Vel[1]
         r = Ang_Vel[2]
 
-        lamb = self._k_quat * (1.0 - Quat[0]**2 - Quat[1]**2 - Quat[2]**2 - Quat[3]**2)
-        quat_dot0 = 0.5 * (-p*Quat[1] - q*Quat[2] - r*Quat[3] ) + lamb * Quat[0]
+        lamb = self._k_quat * (1.0 - np.dot(Quat, Quat))
+        quat_dot0 = - 0.5 * (p*Quat[1] + q*Quat[2] + r*Quat[3] ) + lamb * Quat[0]
         quat_dot1 = 0.5 * (p*Quat[0] + r*Quat[2] - q*Quat[3] ) + lamb * Quat[1]
         quat_dot2 = 0.5 * (q*Quat[0] - r*Quat[1] + p*Quat[3] ) + lamb * Quat[2]
         quat_dot3 = 0.5 * (r*Quat[0] + q*Quat[1] - p*Quat[2] ) + lamb * Quat[3]

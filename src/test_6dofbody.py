@@ -33,7 +33,7 @@ Yaw=0*np.pi/180
 Ball.initialize_statevector(Roll, Pitch, Yaw)
 
 
-step_size = 0.01
+step_size = 0.1
 t0 = 0
 tf = 100
 bar = tqdm.tqdm(total=tf, desc='time', initial=t0)

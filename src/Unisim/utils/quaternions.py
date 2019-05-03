@@ -91,9 +91,20 @@ def check_unitnorm(quaternion):
         pass
         #print("Quaternion Error:", error)
 
-def quaternion_rotation(quaternion, vector):
-    quaternion_normalized = quaternion/np.linalg.norm(quaternion)
+def quaternion_rotation(quat, vector):
+    vector_rot = np.zeros(3)
+    #quat_normalized = quat/np.linalg.norm(quat)
 
+    vector_rot[0] = 2*(0.5 - quat[2]**2 - quat[3]**2)*vector[0]
+    vector_rot[0] = vector_rot[0] + 2*(quat[1]*quat[2]+quat[0]*quat[3])*vector[1]
+    vector_rot[0] = vector_rot[0] + 2*(-quat[0]*quat[2]+quat[1]*quat[3])*vector[2]
 
+    vector_rot[1] = 2*(quat[1]*quat[2]-quat[0]*quat[3])*vector[0]
+    vector_rot[1] = vector_rot[1] + 2*(0.5 - quat[1]**2 - quat[3]**2)*vector[1]
+    vector_rot[1] = vector_rot[1] + 2*(quat[0]*quat[1]+quat[2]*quat[3])*vector[2]
+
+    vector_rot[2] = 2*(quat[1]*quat[3]+quat[0]*quat[2])*vector[0]
+    vector_rot[2] = vector_rot[2] + 2*(-quat[0]*quat[1]+quat[2]*quat[3])*vector[1]
+    vector_rot[2] = vector_rot[2] + 2*(0.5 - quat[1]**2 - quat[2]**2)*vector[2]
 
     return vector_rot
