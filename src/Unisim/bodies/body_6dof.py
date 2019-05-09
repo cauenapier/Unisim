@@ -181,7 +181,8 @@ class Body(object):
 
     def sleep(self):
         """ Forces a body to sleep and stop propagation.
-            Time will still pass but object will not be propagated
+            Time will still pass but object will not be propagated.
+            It will keep its position
         """
         self._isSleeping = 1
     def awake(self):

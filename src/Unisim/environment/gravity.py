@@ -86,7 +86,7 @@ class VerticalNewton(Gravity):
         self._vector = self.magnitude * self._versor
 
 class SimpleNewton(Gravity):
-    """SImple gravity model with magnitude varying according to Newton's
+    """Simple gravity model with magnitude varying according to Newton's
     universal law of gravitation.
     """
 

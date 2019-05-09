@@ -74,7 +74,6 @@ class Earth_Round(Planet):
 
         return x, y, z
 
-
     def _get_height(self, pos):
         """
         Position in Earth Centered Frame
