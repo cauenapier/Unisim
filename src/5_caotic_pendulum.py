@@ -51,7 +51,7 @@ spring = Ellastic_Rope_3DOF(FixedPoint, Ball, rest_length, stiffness, damping)
 spring2 = Ellastic_Rope_3DOF(Ball, Ball2, rest_length, stiffness, damping)
 #spring = DampedSpring(FixedPoint, Ball, rest_length, stiffness, damping)
 
-step_size = 0.0005
+step_size = 0.005
 t0 = 0
 tf = 10
 

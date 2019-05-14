@@ -128,7 +128,6 @@ class Body(object):
 
         self._constraints.append(constraint)
 
-
     def sleep(self):
         """ Forces a body to sleep and stop propagation.
             Time will still pass but object will not be propagated

@@ -1,6 +1,6 @@
-
 import numpy as np
 import matplotlib.pyplot as plt
+import tqdm
 from Unisim.bodies.body_3dof import *
 from Unisim.environment import *
 from Unisim.environment.atmosphere import ISA1976
@@ -32,10 +32,16 @@ step_size = 1
 t0 = 0
 tf = 10000
 
+
+bar = tqdm.tqdm(total=tf, desc='time', initial=t0)
+
 for ii in np.arange(t0,tf, step_size):
     Sat.step(step_size)
     #print(Sat.altitude())
+    bar.update(step_size)
+bar.close()
 results = pd.DataFrame(Sat.results)
+
 
 plt.plot(results['Pos x'], results['Pos y'])
 plt.show()

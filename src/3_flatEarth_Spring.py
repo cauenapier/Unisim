@@ -40,14 +40,14 @@ Ball2.set_environment(Env)
 
 Balls = [Ball1, Ball2]
 
-rest_length = 5
+rest_length = 9
 stiffness = 1000
 damping = 0
 spring = DampedSpring(Ball1, Ball2, rest_length, stiffness, damping)
 
-step_size = 0.1
+step_size = 0.01
 t0 = 0
-tf = 100
+tf = 200
 
 spring_forces = np.zeros(3)
 
@@ -55,8 +55,8 @@ for ii in np.arange(t0,tf, step_size):
     spring._calcForce_a2b()
     for Ball in Balls:
         Ball.step(step_size)
-        print(Ball._name, Ball._state_vector[0:3])
-        print("")
+        #print(Ball._name, Ball._state_vector[0:3])
+        #print("")
 #        print(Ball._get_name(), Ball.total_forces)
 #    print("")
 
