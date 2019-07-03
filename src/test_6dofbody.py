@@ -36,7 +36,7 @@ Ball.initialize_statevector(Roll, Pitch, Yaw)
 
 step_size = 0.01
 t0 = 0
-tf = 100
+tf = 10
 bar = tqdm.tqdm(total=tf, desc='time', initial=t0)
 for ii in np.arange(t0,tf,step_size):
     #print(Ball._state_vector[6:10])
@@ -57,9 +57,9 @@ ax.plot(results['Time'], results['Pos z'],  label='Pos_z')
 legend = ax.legend(loc = 'upper right')
 plt.show()
 
-#fig, ax = plt.subplots()
-#ax.plot(results['Time'], results['Psi'],  label='Psi')
-#ax.plot(results['Time'], results['Theta'],  label='Theta')
-#ax.plot(results['Time'], results['Phi'],  label='Phi')
-#legend = ax.legend(loc = 'upper right')
-#plt.show()
+fig, ax = plt.subplots()
+ax.plot(results['Time'], results['Psi'],  label='Psi')
+ax.plot(results['Time'], results['Theta'],  label='Theta')
+ax.plot(results['Time'], results['Phi'],  label='Phi')
+legend = ax.legend(loc = 'upper right')
+plt.show()

@@ -269,10 +269,7 @@ class Body_FlatEarth(Body):
         """
         rv = self._system_equations_6DOF(t,x,self._mass, self._MOI, self.total_forces, self.total_torques)
         Quat = rv[6:10]
-        # Direction Cossine Matrix
-        self._DCM = quat2DCM(Quat)
-        # Euler angles
-        self._euler = quat2euler(Quat)
+
         return rv
 
     def initialize_statevector(self, roll_0, pitch_0, yaw_0):
@@ -295,7 +292,7 @@ class Body_FlatEarth(Body):
 
         if self._time <= 1:
             self.total_torques = np.array([1,1,1])
-        #elif self._time >= 3 and self._time < 4:
+        #if self._time >= 3 and self._time < 4:
         #    self.total_torques = np.array([-1,-1,-1])
         else:
             self.total_torques = np.zeros(3)
@@ -345,10 +342,16 @@ class Body_FlatEarth(Body):
         Quat = state_vector[6:10]
         Ang_Vel = state_vector[10:13]
 
-<<<<<<< HEAD
-=======
+        # Direction Cossine Matrix
+        self._DCM = quat2DCM(Quat)
+        # Euler angles
+        self._euler = quat2euler(Quat)
 
->>>>>>> 3613c30d33cddcff97658e6640a7f4c50dc5092e
+        # Direction Cossine Matrix
+        self._DCM = quat2DCM(Quat)
+        # Euler angles
+        self._euler = quat2euler(Quat)
+
         # Tangencial Acceleration
         Acc_t = np.cross(Vel,Ang_Vel)
         # Acceleration in Body Coordinates
@@ -373,12 +376,6 @@ class Body_FlatEarth(Body):
         quat_dot3 = 0.5 * (r*Quat[0] + q*Quat[1] - p*Quat[2] ) + lamb * Quat[3]
         Quat_dot = np.array([quat_dot0, quat_dot1, quat_dot2, quat_dot3])
 
-<<<<<<< HEAD
-=======
-        # Direction Cossine Matrix
-        self._DCM = quat2DCM(Quat)
-        # Euler angles
-        self._euler = quat2euler(Quat)
->>>>>>> 3613c30d33cddcff97658e6640a7f4c50dc5092e
+
 
         return np.concatenate((Vel_earth, Acc, Quat_dot, Ang_Acc))
