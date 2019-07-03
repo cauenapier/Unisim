@@ -3,8 +3,19 @@ class Aerodynamics(object):
     """
     def __init__(self):
         ""
+<<<<<<< HEAD
         self._Drag = 0
         self._Lift = 0
+=======
+
+
+
+    def _set_cD(self, mass):
+        ""
+    def _get_cD(self):
+        return self._mass
+    cD = property(_get_cD, _set_cD, doc="""Drag Coefficient""")
+>>>>>>> 3613c30d33cddcff97658e6640a7f4c50dc5092e
 
 
     def forces_body(self):
@@ -22,6 +33,7 @@ class Aerodynamics(object):
 
         """
         raise NotImplementedError
+<<<<<<< HEAD
 
 class OnlyDrag(Aerodynamics):
     """
@@ -38,3 +50,5 @@ class OnlyDrag(Aerodynamics):
 
     def forces_wind(self):
         return self._Drag
+=======
+>>>>>>> 3613c30d33cddcff97658e6640a7f4c50dc5092e

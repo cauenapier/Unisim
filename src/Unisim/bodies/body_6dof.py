@@ -345,6 +345,10 @@ class Body_FlatEarth(Body):
         Quat = state_vector[6:10]
         Ang_Vel = state_vector[10:13]
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 3613c30d33cddcff97658e6640a7f4c50dc5092e
         # Tangencial Acceleration
         Acc_t = np.cross(Vel,Ang_Vel)
         # Acceleration in Body Coordinates
@@ -369,5 +373,12 @@ class Body_FlatEarth(Body):
         quat_dot3 = 0.5 * (r*Quat[0] + q*Quat[1] - p*Quat[2] ) + lamb * Quat[3]
         Quat_dot = np.array([quat_dot0, quat_dot1, quat_dot2, quat_dot3])
 
+<<<<<<< HEAD
+=======
+        # Direction Cossine Matrix
+        self._DCM = quat2DCM(Quat)
+        # Euler angles
+        self._euler = quat2euler(Quat)
+>>>>>>> 3613c30d33cddcff97658e6640a7f4c50dc5092e
 
         return np.concatenate((Vel_earth, Acc, Quat_dot, Ang_Acc))
