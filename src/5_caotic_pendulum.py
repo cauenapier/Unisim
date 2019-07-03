@@ -28,7 +28,7 @@ FixedPoint._set_mass(10000)
 FixedPoint._set_name("Fixed Point")
 
 Ball = Body_FlatEarth(t0,x0_1)
-Ball._set_mass(10)
+Ball._set_mass(5)
 Ball._set_name("Ball 1")
 Ball2 = Body_FlatEarth(t0, x0_2)
 Ball2._set_mass(10)
@@ -45,13 +45,13 @@ Ball2.set_environment(Env)
 #FixedPoint.set_environment(Env) # If the fixed point is not being integrate, there is no need to assign an environment to it
 
 rest_length = 1
-stiffness = 10000
+stiffness = 1000
 damping = 10
 spring = Ellastic_Rope_3DOF(FixedPoint, Ball, rest_length, stiffness, damping)
 spring2 = Ellastic_Rope_3DOF(Ball, Ball2, rest_length, stiffness, damping)
 #spring = DampedSpring(FixedPoint, Ball, rest_length, stiffness, damping)
 
-step_size = 0.005
+step_size = 0.001
 t0 = 0
 tf = 10
 

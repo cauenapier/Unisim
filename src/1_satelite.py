@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import tqdm
+import pymap3d
+import datetime
 from Unisim.bodies.body_3dof import *
 from Unisim.environment import *
 from Unisim.environment.atmosphere import ISA1976
@@ -13,8 +15,18 @@ t0 = 0
 #% Position, velocity, acceleration
 x0 = np.zeros(6)
 
-altitude = 242000 # Meters
-x0[0] = 6371000 + altitude
+lat = 0
+long = 0
+alt = 242000
+
+time_now = datetime.datetime.now()
+
+pos_ecef = pymap3d.geodetic2ecef(lat, long, alt)
+print(pos_ecef)
+pos_eci = pymap3d.ecef2eci(pos_ecef[0], pos_ecef[1], pos_ecef[2], time_now)
+print(pos_eci)
+
+x0[0:3] = pos_ecef
 # Velocity
 x0[4] = 7800
 

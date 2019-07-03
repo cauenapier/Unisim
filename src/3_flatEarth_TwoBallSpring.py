@@ -42,7 +42,7 @@ Balls = [Ball1, Ball2]
 
 rest_length = 9
 stiffness = 1000
-damping = 0
+damping = 100
 spring = DampedSpring(Ball1, Ball2, rest_length, stiffness, damping)
 
 step_size = 0.01

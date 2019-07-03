@@ -268,6 +268,11 @@ class Body_FlatEarth(Body):
         Yaw - Psi
         """
         rv = self._system_equations_6DOF(t,x,self._mass, self._MOI, self.total_forces, self.total_torques)
+        Quat = rv[6:10]
+        # Direction Cossine Matrix
+        self._DCM = quat2DCM(Quat)
+        # Euler angles
+        self._euler = quat2euler(Quat)
         return rv
 
     def initialize_statevector(self, roll_0, pitch_0, yaw_0):
@@ -280,6 +285,7 @@ class Body_FlatEarth(Body):
         """
         mass = self._mass
         MOI = self._MOI
+
         height = self._state_vector[2]
         DCM = self._DCM
 
@@ -288,7 +294,9 @@ class Body_FlatEarth(Body):
         self.total_torques = np.zeros(3)
 
         if self._time <= 1:
-            self.total_torques = np.array([1,0,0])
+            self.total_torques = np.array([1,1,1])
+        #elif self._time >= 3 and self._time < 4:
+        #    self.total_torques = np.array([-1,-1,-1])
         else:
             self.total_torques = np.zeros(3)
 
@@ -297,6 +305,7 @@ class Body_FlatEarth(Body):
         self.calc_gravity(mass, DCM)
         #self.calc_gravity_quat(mass, self._state_vector[6:10])
 
+        self._environment.atmosphere.update(height)
         # === AERO ===
         if self._aerodynamics is not None:
             self.calc_aero()
@@ -320,7 +329,11 @@ class Body_FlatEarth(Body):
         return Fg
 
     def calc_aero(self):
-        NotImplementedError
+        Fa = self._aerodynamics.forces_body()
+        Ma = self._aerodynamics.torques()
+        self.total_forces = self.total_forces + Fa
+        self.total_torques = self.total_torques + Ma
+        return Fa
 
     def _system_equations_6DOF(self, time, state_vector, mass, MOI, forces, torques):
         """
@@ -332,17 +345,13 @@ class Body_FlatEarth(Body):
         Quat = state_vector[6:10]
         Ang_Vel = state_vector[10:13]
 
-        # Direction Cossine Matrix
-        self._DCM = quat2DCM(Quat)
-        # Euler angles
-        self._euler = quat2euler(Quat)
-
         # Tangencial Acceleration
         Acc_t = np.cross(Vel,Ang_Vel)
         # Acceleration in Body Coordinates
         Acc = forces/mass + Acc_t
         # Transform Velocity Into Local coordinates
         Vel_earth = np.matmul(self._DCM.transpose(), Vel)
+        #Quat_inv = quaternioin_inverse(Quat)
         #Vel_earth = quaternion_rotation(Quat, Vel)
         #print(Vel_earth)
 
@@ -356,8 +365,9 @@ class Body_FlatEarth(Body):
         lamb = self._k_quat * (1.0 - np.dot(Quat, Quat))
         quat_dot0 = - 0.5 * (p*Quat[1] + q*Quat[2] + r*Quat[3] ) + lamb * Quat[0]
         quat_dot1 = 0.5 * (p*Quat[0] + r*Quat[2] - q*Quat[3] ) + lamb * Quat[1]
-        quat_dot2 = 0.5 * (q*Quat[0] - r*Quat[1] + p*Quat[3] ) + lamb * Quat[2]
+        quat_dot2 = 0.5 * (q*Quat[0] + p*Quat[3] - r*Quat[1] ) + lamb * Quat[2]
         quat_dot3 = 0.5 * (r*Quat[0] + q*Quat[1] - p*Quat[2] ) + lamb * Quat[3]
         Quat_dot = np.array([quat_dot0, quat_dot1, quat_dot2, quat_dot3])
+
 
         return np.concatenate((Vel_earth, Acc, Quat_dot, Ang_Acc))
