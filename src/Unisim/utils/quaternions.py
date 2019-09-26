@@ -52,9 +52,12 @@ def quat2euler(quaternion):
 
     return euler_angles
 
-def quat2DCM(quat):
+def quat2DCM(quaternion):
     """
     """
+    quat = quaternion/np.linalg.norm(quaternion)
+
+
     DCM = np.zeros((3,3))
     DCM[0,0] = quat[0]**2 + quat[1]**2 - quat[2]**2 - quat[3]**2
     DCM[0,1] = 2*(quat[1]*quat[2] + quat[0]*quat[3])
@@ -109,14 +112,15 @@ def quaternion_rotation(quaternion, vector):
 
     return vector_rot
 
-def quaternioin_inverse(quaternion):
+def quaternion_inverse(quaternion):
     quat_inv = np.zeros(4)
-    quat_norm = quaternion/np.linalg.norm(quaternion)
+    quat_norm = np.linalg.norm(quaternion)
+    quat_norm = quaternion[0]*quaternion[0] + quaternion[1]*quaternion[1] + quaternion[2]*quaternion[2] + quaternion[3]*quaternion[3]
 
-    quat_inv[0] = quaternion[0]/quat_norm[0]
-    quat_inv[1] = -quaternion[1]/quat_norm[1]
-    quat_inv[2] = -quaternion[2]/quat_norm[2]
-    quat_inv[3] = -quaternion[3]/quat_norm[3]
+    quat_inv[0] = quaternion[0]/quat_norm
+    quat_inv[1] = -quaternion[1]/quat_norm
+    quat_inv[2] = -quaternion[2]/quat_norm
+    quat_inv[3] = -quaternion[3]/quat_norm
 
     quat_nan = np.isnan(quat_inv)
     quat_inv[quat_nan] = 0

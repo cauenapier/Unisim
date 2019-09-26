@@ -10,11 +10,12 @@ from Unisim.environment.atmosphere import ISA1976
 from Unisim.environment.wind import NoWind
 from Unisim.environment.gravity import *
 from Unisim.environment.environment import Environment
+from Unisim.aerodynamics.aerodynamics import OnlyDrag
 
 
 t0 = 0
 x0 = np.zeros(13)
-x0[2] = 1000
+x0[2] = 10000
 
 Ball = Body_FlatEarth(t0,x0, k_quat=1)
 Ball._set_mass(1)
@@ -27,6 +28,9 @@ Env = Environment(atmo, gravity, wind)
 
 Ball.set_environment(Env)
 
+#drag = OnlyDrag(0.5, 1)
+#Ball.set_aerodynamics(drag)
+
 
 Roll=0*np.pi/180
 Pitch=0*np.pi/180
@@ -36,7 +40,7 @@ Ball.initialize_statevector(Roll, Pitch, Yaw)
 
 step_size = 0.01
 t0 = 0
-tf = 10
+tf = 40
 bar = tqdm.tqdm(total=tf, desc='time', initial=t0)
 for ii in np.arange(t0,tf,step_size):
     #print(Ball._state_vector[6:10])
@@ -54,6 +58,13 @@ fig, ax = plt.subplots()
 ax.plot(results['Time'], results['Pos x'],  label='Pos_x')
 ax.plot(results['Time'], results['Pos y'],  label='Pos_y')
 ax.plot(results['Time'], results['Pos z'],  label='Pos_z')
+legend = ax.legend(loc = 'upper right')
+plt.show()
+
+fig, ax = plt.subplots()
+ax.plot(results['Time'], results['Vel x'],  label='Vel_x')
+ax.plot(results['Time'], results['Vel y'],  label='Vel_y')
+ax.plot(results['Time'], results['Vel z'],  label='Vel_z')
 legend = ax.legend(loc = 'upper right')
 plt.show()
 

@@ -5,6 +5,7 @@ from abc import abstractmethod
 import pandas as pd
 
 from Unisim.utils.quaternions import *
+from Unisim.utils.quaternions import quaternion_inverse
 
 class Body(object):
 
@@ -171,6 +172,13 @@ class Body(object):
         self._environment = environment
 
     @property
+    def aerodynamics(self):
+        return self._aerodynamics
+
+    def set_aerodynamics(self, aerodynamics):
+        self._aerodynamics = aerodynamics
+
+    @property
     def constraints(self):
         return self._constraints
 
@@ -235,6 +243,13 @@ class Body(object):
 
             method = self._method
             # TODO: prepare to use jacobian in case it is defined
+
+            Quat = self._state_vector[6:10]
+            # Direction Cossine Matrix
+            self._DCM = quat2DCM(Quat)
+            # Euler angles
+            self._euler = quat2euler(Quat)
+
             self.calculate_forces_and_torques()
             sol = solve_ivp(self.fun_wrapped, t_span, x0, method=method,
                             **self._options)
@@ -244,6 +259,8 @@ class Body(object):
 
             self._time = sol.t[-1]
             self._state_vector = sol.y[:, -1]
+
+
 
         self._save_time_step()
         return self._state_vector
@@ -268,7 +285,6 @@ class Body_FlatEarth(Body):
         Yaw - Psi
         """
         rv = self._system_equations_6DOF(t,x,self._mass, self._MOI, self.total_forces, self.total_torques)
-        Quat = rv[6:10]
 
         return rv
 
@@ -284,7 +300,6 @@ class Body_FlatEarth(Body):
         MOI = self._MOI
 
         height = self._state_vector[2]
-        DCM = self._DCM
 
         # Zeroing the total forces variable
         self.total_forces = np.zeros(3)
@@ -299,13 +314,15 @@ class Body_FlatEarth(Body):
 
         # === GRAVITY ===
         self._environment.gravity.update(height)
-        self.calc_gravity(mass, DCM)
+        self.calc_gravity(mass, self._DCM)
         #self.calc_gravity_quat(mass, self._state_vector[6:10])
 
         self._environment.atmosphere.update(height)
         # === AERO ===
         if self._aerodynamics is not None:
-            self.calc_aero()
+            self._aerodynamics.update(self._environment,self._state_vector[3:6])
+            Fa = self._aerodynamics.forces_wind()
+            self.total_forces = self.total_forces + Fa
 
         # === CONSTRAINTS ===
         if self._constraints is not []:
@@ -342,24 +359,14 @@ class Body_FlatEarth(Body):
         Quat = state_vector[6:10]
         Ang_Vel = state_vector[10:13]
 
-        # Direction Cossine Matrix
-        self._DCM = quat2DCM(Quat)
-        # Euler angles
-        self._euler = quat2euler(Quat)
-
-        # Direction Cossine Matrix
-        self._DCM = quat2DCM(Quat)
-        # Euler angles
-        self._euler = quat2euler(Quat)
-
         # Tangencial Acceleration
         Acc_t = np.cross(Vel,Ang_Vel)
         # Acceleration in Body Coordinates
         Acc = forces/mass + Acc_t
         # Transform Velocity Into Local coordinates
         Vel_earth = np.matmul(self._DCM.transpose(), Vel)
-        #Quat_inv = quaternioin_inverse(Quat)
-        #Vel_earth = quaternion_rotation(Quat, Vel)
+        #Quat_inv = quaternion_inverse(Quat)
+        #Vel_earth = quaternion_rotation(Quat_inv, Vel)
         #print(Vel_earth)
 
         Ang_Acc = np.matmul(np.linalg.inv(MOI), (torques - np.cross(Ang_Vel, np.matmul(MOI, Ang_Vel))))
@@ -371,11 +378,9 @@ class Body_FlatEarth(Body):
 
         lamb = self._k_quat * (1.0 - np.dot(Quat, Quat))
         quat_dot0 = - 0.5 * (p*Quat[1] + q*Quat[2] + r*Quat[3] ) + lamb * Quat[0]
-        quat_dot1 = 0.5 * (p*Quat[0] + r*Quat[2] - q*Quat[3] ) + lamb * Quat[1]
-        quat_dot2 = 0.5 * (q*Quat[0] + p*Quat[3] - r*Quat[1] ) + lamb * Quat[2]
-        quat_dot3 = 0.5 * (r*Quat[0] + q*Quat[1] - p*Quat[2] ) + lamb * Quat[3]
+        quat_dot1 = + 0.5 * (p*Quat[0] + r*Quat[2] - q*Quat[3] ) + lamb * Quat[1]
+        quat_dot2 = + 0.5 * (q*Quat[0] + p*Quat[3] - r*Quat[1] ) + lamb * Quat[2]
+        quat_dot3 = + 0.5 * (r*Quat[0] + q*Quat[1] - p*Quat[2] ) + lamb * Quat[3]
         Quat_dot = np.array([quat_dot0, quat_dot1, quat_dot2, quat_dot3])
-
-
 
         return np.concatenate((Vel_earth, Acc, Quat_dot, Ang_Acc))

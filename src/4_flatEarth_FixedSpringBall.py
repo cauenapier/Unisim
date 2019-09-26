@@ -37,8 +37,8 @@ Ball.set_environment(Env)
 #FixedPoint.set_environment(Env) # If the fixed point is not being integrate, there is no need to assign an environment to it
 
 rest_length = 5
-stiffness = 1000
-damping = 600
+stiffness = 600
+damping = 100
 spring = Ellastic_Rope_3DOF(FixedPoint, Ball, rest_length, stiffness, damping)
 #spring = DampedSpring(FixedPoint, Ball, rest_length, stiffness, damping)
 

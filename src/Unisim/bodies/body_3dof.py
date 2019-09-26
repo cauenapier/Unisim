@@ -233,12 +233,14 @@ class Body_FlatEarth(Body):
         self.calc_gravity(mass)
 
         # === ATMOSPHERE ===
-        #self._environment.atmosphere.update(height)
+        #print(self._environment.atmosphere.rho)
 
         # === AERO ===
         #self.calc_drag_TEMP(self._state_vector[3:6])
         if self._aerodynamics is not None:
-            self.calc_aero_forces()
+            self._aerodynamics.update(self._environment,self._state_vector[3:6])
+            Fa = self._aerodynamics.forces_wind()
+            self.total_forces = self.total_forces + Fa
 
         # === CONSTRAINTS ===
         if self._constraints is not []:
@@ -256,13 +258,7 @@ class Body_FlatEarth(Body):
         self.total_forces = self.total_forces + Fk
         return Fk
 
-    def calc_aero_forces(self):
-        """
-        !!!Drafting!!!
-        """
-        Fa =  np.matmul(DCM, self._aerodynamics.forces_body())
-        self.total_forces = self.total_forces + Fa
-
+    def calc_aero_forces(self, state_vector):
         raise NotImplementedError
 
     def calc_gravity(self, mass):
